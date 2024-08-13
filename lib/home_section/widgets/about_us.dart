@@ -37,7 +37,7 @@ class AboutUs extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               Text(
-                'Centi Crensento version 4.0.1 © 2024',
+                'Centi Crescendo version 4.0.1 © 2024',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -55,7 +55,7 @@ class AboutUs extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Centi Cresendo est une application de vente de tickets de tombola en ligne qui offre une expérience ludique et accessible à tous. Avec des tickets à un prix vraiment insignifiant, chacun peut tenter sa chance pour remporter des gains exceptionnels.',
+                        'Centi Crescendo est une application de vente de tickets de tombola en ligne qui offre une expérience ludique et accessible à tous. Avec des tickets à un prix vraiment insignifiant, chacun peut tenter sa chance pour remporter des gains exceptionnels.',
                         style: TextStyle(fontSize: 16.0),
                       ),
                       SizedBox(

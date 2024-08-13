@@ -454,7 +454,7 @@ class _DepositState extends State<Deposit> {
                         labelStyle: TextStyle(
                           color: phoneNumberFocus.hasFocus
                               ? Colors.blue
-                              : Coolors.greyLight, 
+                              : Coolors.greyLight,
                         ),
                         suffixIcon: phoneNumberController.text.isNotEmpty
                             ? Container(

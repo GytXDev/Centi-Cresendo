@@ -70,7 +70,7 @@ class _WelcomePageState extends State<WelcomePage> {
                     _buildItem(
                       header: '1. Collecte et utilisation des informations',
                       content:
-                          'Lorsque vous utilisez l’application Centi Cresendo, nous collectons des informations telles que votre adresse e-mail pour l’authentification via des fournisseurs tiers tels que Google ou Apple, et votre localisation pour personnaliser votre expérience. Ces informations sont utilisées pour améliorer nos services, assurer la sécurité de votre compte, et personnaliser votre expérience.',
+                          'Lorsque vous utilisez l’application Centi Crescendo, nous collectons des informations telles que votre adresse e-mail pour l’authentification via des fournisseurs tiers tels que Google ou Apple, et votre localisation pour personnaliser votre expérience. Ces informations sont utilisées pour améliorer nos services, assurer la sécurité de votre compte, et personnaliser votre expérience.',
                     ),
                     _buildItem(
                       header: '2. Protection des données',
@@ -80,7 +80,7 @@ class _WelcomePageState extends State<WelcomePage> {
                     _buildItem(
                       header: '3. Notifications',
                       content:
-                          'Centi Cresendo envoie des notifications aux utilisateurs pour les informer des résultats des tirages, des promotions spéciales et d’autres événements pertinents liés à l’application. Ces notifications sont envoyées via Firebase Cloud Messaging (FCM).',
+                          'Centi Crescendo envoie des notifications aux utilisateurs pour les informer des résultats des tirages, des promotions spéciales et d’autres événements pertinents liés à l’application. Ces notifications sont envoyées via Firebase Cloud Messaging (FCM).',
                     ),
                     _buildItem(
                       header: '4. Autorisations de l’Application',
@@ -96,12 +96,12 @@ class _WelcomePageState extends State<WelcomePage> {
                       header:
                           '6. Utilisation de l\'API pour les paiements',
                       content:
-                          'Centi Cresendo utilise une API de paiement sécurisé pour faciliter les paiements via Airtel Money et Moov Money. L\'utilisation de cette API garantit la confidentialité et la sécurité de vos informations financières lors des transactions.',
+                          'Centi Crescendo utilise une API de paiement sécurisé pour faciliter les paiements via Airtel Money et Moov Money. L\'utilisation de cette API garantit la confidentialité et la sécurité de vos informations financières lors des transactions.',
                     ),
                     _buildItem(
                       header: '7. Enfants',
                       content:
-                          'L’application Centi Cresendo n’est pas destinée aux enfants de moins de 18 ans.',
+                          'L’application Centi Crescendo n’est pas destinée aux enfants de moins de 18 ans.',
                     ),
                     _buildItem(
                       header:
@@ -171,7 +171,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'En utilisant l\'application Centi Crensento, vous acceptez les conditions suivantes',
+                      'En utilisant l\'application Centi Crescendo, vous acceptez les conditions suivantes',
                       style: TextStyle(
                         fontSize: 16,
                       ),
@@ -182,12 +182,12 @@ class _WelcomePageState extends State<WelcomePage> {
                     _buildItem(
                       header: '1. Utilisation des services',
                       content:
-                          'Vous reconnaissez et acceptez que l\'utilisation de Centi Crensento est soumise à votre conformité avec ces conditions d\'utilisation, ainsi qu\'à toutes les lois et réglementations applicables.',
+                          'Vous reconnaissez et acceptez que l\'utilisation de Centi Crescendo est soumise à votre conformité avec ces conditions d\'utilisation, ainsi qu\'à toutes les lois et réglementations applicables.',
                     ),
                     _buildItem(
                       header: '2. Respect de la vie privée',
                       content:
-                          'Vous comprenez et acceptez que Centi Crensento collecte, traite et utilise vos informations personnelles conformément à sa politique de confidentialité.',
+                          'Vous comprenez et acceptez que Centi Crescendo collecte, traite et utilise vos informations personnelles conformément à sa politique de confidentialité.',
                     ),
                     _buildItem(
                       header: '3. Responsabilité de l\'utilisateur',
@@ -202,7 +202,7 @@ class _WelcomePageState extends State<WelcomePage> {
                     _buildItem(
                       header: '5. Modifications des conditions',
                       content:
-                          'Centi Crensento se réserve le droit de modifier ces conditions d\'utilisation à tout moment, et il est de votre responsabilité de consulter régulièrement ces conditions pour toute mise à jour.',
+                          'Centi Crescendo se réserve le droit de modifier ces conditions d\'utilisation à tout moment, et il est de votre responsabilité de consulter régulièrement ces conditions pour toute mise à jour.',
                     ),
                     Row(
                       children: [

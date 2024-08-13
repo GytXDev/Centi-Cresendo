@@ -127,7 +127,7 @@ class MyApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'CentiCrensento',
+      title: 'CentiCrescendo',
       theme: lightTheme(),
       darkTheme: darkTheme(),
       debugShowCheckedModeBanner: false,

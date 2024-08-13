@@ -16,7 +16,7 @@
     "phone_number_too_long": "The phone number you entered is too long for the country: {{countryName}}.",
     "enterPhoneNumber": "Please enter your phone number.",
     "carrierChargesApply": "Carrier charges may apply.",
-    "verificationSMS": "Centi Cresendo will need to verify your phone number.",
+    "verificationSMS": "Centi Crescendo will need to verify your phone number.",
     "whatsMyNumber": " What's my number?",
     "next": "NEXT",
     "phoneNumber": "Phone number",
