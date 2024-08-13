@@ -133,9 +133,26 @@ class _DepositState extends State<Deposit> {
           message: 'Envoi de la requête en cours...',
           barrierDismissible: false,
         );
+
+        // Obtenir les informations de l'utilisateur connecté
+        UserModel? userModel = await authRepository.getCurrentUserInfo();
+        if (userModel == null) {
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            text:
+                'Impossible de récupérer les informations de l\'administrateur.',
+          );
+          setState(() {
+            isLoading = false;
+          });
+          return;
+        }
+
         // Recharger directement le compte de l'administrateur sans passer par l'API
         await authRepository.updateAdminBalance(
           amountToAdd: amountToAdd,
+          user: userModel,
         );
         Navigator.pop(context);
         // Afficher une alerte pour informer l'utilisateur de l'action effectuée
@@ -166,7 +183,7 @@ class _DepositState extends State<Deposit> {
         phoneNumber.startsWith('077') ||
         phoneNumber.startsWith('076') ||
         phoneNumber.startsWith('075')) {
-      url = 'https://centicresento.com/api/airtelmoney.php';
+      url = 'https://centicresento.com/api/airtelmoney-web.php';
     } else if (phoneNumber.startsWith('060') ||
         phoneNumber.startsWith('062') ||
         phoneNumber.startsWith('066') ||
@@ -300,12 +317,6 @@ class _DepositState extends State<Deposit> {
                   amountToAdd: amountToAdd,
                   phoneNumber: phoneNumber,
                 );
-                // Vérifier si l'utilisateur est un administrateur
-                if (userModel.userType != 'admin') {
-                  await authRepository.updateAdminBalance(
-                    amountToAdd: amountToAdd,
-                  );
-                }
 
                 // Fermer le dialogue de chargement après l'actualisation du solde
                 Navigator.pop(context);

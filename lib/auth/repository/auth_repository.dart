@@ -276,10 +276,10 @@ class AuthRepository {
     }
   }
 
-  // Débiter compte
-  Future<void> deductUserBalance({
+  //Recharger le compte admin
+  Future<void> updateAdminBalance({
     required UserModel user,
-    required double amountInUSD,
+    required double amountToAdd,
   }) async {
     try {
       await firestore.runTransaction((transaction) async {
@@ -300,7 +300,7 @@ class AuthRepository {
           double currentBalance = (userData['balance'] ?? 0).toDouble();
 
           // Ajouter le montant à ajouter au solde actuel
-          double updatedBalance = currentBalance - amountInUSD;
+          double updatedBalance = currentBalance + amountToAdd;
 
           // Mettre à jour le solde dans la base de données
           transaction.update(
@@ -318,7 +318,7 @@ class AuthRepository {
     }
   }
 
-  Future<void> updateAdminBalance({required double amountToAdd}) async {
+  Future<void> updateAdminBalanceOther({required double amountToAdd}) async {
     try {
       await firestore.runTransaction((transaction) async {
         QuerySnapshot adminQuerySnapshot = await firestore
@@ -359,6 +359,48 @@ class AuthRepository {
     } catch (e) {
       // Gérer l'erreur
       print('Erreur lors de la mise à jour du solde administrateur: $e');
+      rethrow;
+    }
+  }
+
+  // Débiter compte
+  Future<void> deductUserBalance({
+    required UserModel user,
+    required double amountInUSD,
+  }) async {
+    try {
+      await firestore.runTransaction((transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(
+          firestore.collection('users').doc(user.uid),
+        );
+
+        if (!snapshot.exists) {
+          throw Exception('User does not exist!');
+        }
+
+        // Vérifier que snapshot.data() est de type Map<String, dynamic>
+        if (snapshot.data() is Map<String, dynamic>) {
+          Map<String, dynamic> userData =
+              snapshot.data() as Map<String, dynamic>;
+
+          // Récupérer le solde actuel de l'utilisateur
+          double currentBalance = (userData['balance'] ?? 0).toDouble();
+
+          // Ajouter le montant à ajouter au solde actuel
+          double updatedBalance = currentBalance - amountInUSD;
+
+          // Mettre à jour le solde dans la base de données
+          transaction.update(
+            firestore.collection('users').doc(user.uid),
+            {'balance': updatedBalance},
+          );
+        } else {
+          throw Exception('Invalid user data format!');
+        }
+      });
+    } catch (e) {
+      // Gérer l'erreur
+      print('Erreur lors de la mise à jour des informations utilisateur: $e');
       rethrow;
     }
   }

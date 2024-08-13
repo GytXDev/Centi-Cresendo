@@ -75,7 +75,7 @@ class WithdrawalRequestCard extends StatelessWidget {
         }
 
         try {
-          await authRepository.updateAdminBalance(
+          await authRepository.updateAdminBalanceOther(
             amountToAdd: amountToAdd,
           );
 
