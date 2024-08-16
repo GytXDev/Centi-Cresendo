@@ -277,7 +277,7 @@ class AuthRepository {
   }
 
   //Recharger le compte admin
-  Future<void> updateAdminBalance({
+  Future<void> updateBalance({
     required UserModel user,
     required double amountToAdd,
   }) async {

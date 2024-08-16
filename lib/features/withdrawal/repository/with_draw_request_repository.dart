@@ -10,24 +10,13 @@ class WithdrawRequestRepository {
   Stream<List<WithdrawalRequest>> getWithdrawalRequests(
       String userType, String userId) {
     try {
-      if (userType == 'admin') {
-        // Pour les administrateurs, renvoyer toutes les demandes de retrait
-        return FirebaseFirestore.instance
-            .collection('withdrawal_requests')
-            .snapshots()
-            .map((querySnapshot) => querySnapshot.docs
-                .map((doc) => WithdrawalRequest.fromDocument(doc))
-                .toList());
-      } else {
-        // Pour les utilisateurs non administrateurs, renvoyer seulement les demandes de retrait correspondant à leur identifiant
-        return FirebaseFirestore.instance
-            .collection('withdrawal_requests')
-            .where('userId', isEqualTo: userId)
-            .snapshots()
-            .map((querySnapshot) => querySnapshot.docs
-                .map((doc) => WithdrawalRequest.fromDocument(doc))
-                .toList());
-      }
+      // Deleting condition, all users can see withdrawal requests 
+      return FirebaseFirestore.instance
+          .collection('withdrawal_requests')
+          .snapshots()
+          .map((querySnapshot) => querySnapshot.docs
+              .map((doc) => WithdrawalRequest.fromDocument(doc))
+              .toList());
     } catch (e, stackTrace) {
       print('Erreur lors de la récupération des demandes de retrait: $e');
       print(stackTrace);

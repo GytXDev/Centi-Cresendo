@@ -353,7 +353,6 @@ class _WithDrawalState extends State<WithDrawal> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'Montant',
-                            
                             prefixText: currencySymbol == '\$' ? '\$ ' : ' ',
                             suffix: SizedBox(
                               width: 48.0,

@@ -150,7 +150,7 @@ class _DepositState extends State<Deposit> {
         }
 
         // Recharger directement le compte de l'administrateur sans passer par l'API
-        await authRepository.updateAdminBalance(
+        await authRepository.updateBalance(
           amountToAdd: amountToAdd,
           user: userModel,
         );

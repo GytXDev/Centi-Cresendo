@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:quickalert/quickalert.dart';
 import '../../../auth/repository/auth_repository.dart';
 import '../../../colors/helpers/show_loading_dialog.dart';
+import '../../../models/user_model.dart';
 import '../../../models/with_draw_request.dart';
 import '../../../services/exchange_rate.dart';
 import '../repository/with_draw_request_repository.dart';
@@ -26,6 +27,14 @@ class WithdrawalRequestCard extends StatelessWidget {
     this.showStatusButton = false,
   }) : super(key: key);
 
+  String maskPhoneNumber(String phoneNumber) {
+    if (phoneNumber.length == 9) {
+      return '${phoneNumber.substring(0, 3)}-**-**-${phoneNumber.substring(7)}';
+    } else {
+      return phoneNumber; // Si la longueur n'est pas 9, renvoyer le numéro tel quel
+    }
+  }
+
   void _deleteWithdrawalRequest(BuildContext context) async {
     if (withdrawalRequest.status == WithdrawalStatus.processed) {
       QuickAlert.show(
@@ -36,6 +45,7 @@ class WithdrawalRequestCard extends StatelessWidget {
       );
       return;
     }
+
     try {
       // Afficher une boîte de dialogue de confirmation pour la suppression
       final confirmDelete = await showDialog(
@@ -43,7 +53,7 @@ class WithdrawalRequestCard extends StatelessWidget {
         builder: (context) => AlertDialog(
           title: const Text('Confirmation'),
           content: const Text(
-              'Voulez-vous vraiment annuler cette demande vos fonds seront remboursés ?'),
+              'Voulez-vous vraiment annuler cette demande ? Vos fonds seront remboursés.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false), // Annuler
@@ -62,31 +72,76 @@ class WithdrawalRequestCard extends StatelessWidget {
         double amountToAdd = withdrawalRequest.amount;
         if (withdrawalRequest.currency != 'USD' &&
             withdrawalRequest.currency == 'XAF') {
-          amountToAdd = ExchangeRate.convertToUSD(amountToAdd, Currency.XAF);
-          print('Montant après conversion : $amountToAdd USD');
+          try {
+            amountToAdd = ExchangeRate.convertToUSD(amountToAdd, Currency.XAF);
+            print('Montant après conversion : $amountToAdd USD');
+          } catch (e) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              title: 'Erreur de conversion',
+              text: 'Erreur lors de la conversion de la devise.',
+            );
+            return;
+          }
         } else {
           QuickAlert.show(
             context: context,
             type: QuickAlertType.warning,
-            text:
-                "La devise n'est pas prise en charge pour le type de transaction.",
+            text: "La devise n'est pas prise en charge pour cette transaction.",
           );
           return;
         }
 
+        // Obtenir les informations de l'utilisateur connecté
+        UserModel? userModel;
         try {
-          await authRepository.updateAdminBalanceOther(
-            amountToAdd: amountToAdd,
+          userModel = await authRepository.getCurrentUserInfo();
+          if (userModel == null) {
+            throw Exception('Utilisateur non trouvé');
+          }
+        } catch (e) {
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Erreur',
+            text:
+                'Impossible de récupérer les informations de l\'administrateur.',
           );
+          return;
+        }
 
+        // Tentative de mise à jour du solde et de suppression de la demande
+        try {
+          await authRepository.updateBalance(
+            amountToAdd: amountToAdd,
+            user: userModel,
+          );
           await _withDrawRepository
               .deleteWithdrawalRequest(withdrawalRequest.id);
+
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.success,
+            title: 'Succès',
+            text: 'La demande a été annulée et les fonds remboursés.',
+          );
         } catch (e) {
-          print(e);
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Erreur',
+            text: 'Erreur lors de la suppression de la demande.',
+          );
         }
       }
     } catch (e) {
-      print(e);
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.error,
+        title: 'Erreur inattendue',
+        text: 'Une erreur est survenue : $e',
+      );
     }
   }
 
@@ -106,11 +161,23 @@ class WithdrawalRequestCard extends StatelessWidget {
       }
     }
 
+    // Vérifier si l'utilisateur est propriétaire de la demande ou admin
+    final bool isOwnerOrAdmin =
+        withdrawalRequest.userId == FirebaseAuth.instance.currentUser!.uid ||
+            showStatusButton;
+
+    // Masquer le numéro de téléphone si l'utilisateur n'est ni propriétaire ni admin
+    final displayedPhoneNumber = isOwnerOrAdmin
+        ? withdrawalRequest.phoneNumber
+        : maskPhoneNumber(withdrawalRequest.phoneNumber);
+
     return GestureDetector(
-      onLongPress: () => _deleteWithdrawalRequest(context),
+      // Conditionner l'activation du onLongPress en fonction de isOwnerOrAdmin
+      onLongPress:
+          isOwnerOrAdmin ? () => _deleteWithdrawalRequest(context) : null,
       child: Card(
         elevation: 4,
-        margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 48),
+        margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -147,8 +214,7 @@ class WithdrawalRequestCard extends StatelessWidget {
                   getStatusLabel(withdrawalRequest.status),
                   textColor: statusColor,
                 ),
-              _buildInfoRow(
-                  'Numéro de téléphone:', withdrawalRequest.phoneNumber),
+              _buildInfoRow('Numéro de téléphone:', displayedPhoneNumber),
               const SizedBox(height: 10),
               if (showStatusButton &&
                   withdrawalRequest.status != WithdrawalStatus.processed)

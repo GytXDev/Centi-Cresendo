@@ -27,6 +27,7 @@ class _AddNewBetState extends State<AddNewBet> {
   final TextEditingController _participationSumController =
       TextEditingController();
   Duration _selectedDuration = const Duration(days: 1);
+  Duration _selectedAdditionalHours = Duration.zero;
   late final UserModel user;
   final _betRepository = BetRepository(
     firestore: FirebaseFirestore.instance,
@@ -98,8 +99,21 @@ class _AddNewBetState extends State<AddNewBet> {
     }
   }
 
+  DateTime _calculateEndDate() {
+    final now = DateTime.now();
+    // Ajoutez la durée sélectionnée à la date et l'heure actuelles
+    final endDate = now.add(_selectedDuration);
+    // Ajoutez les heures supplémentaires à la date de fin
+    final endDateWithHours = endDate.add(_selectedAdditionalHours);
+    return endDateWithHours;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final endDate = _calculateEndDate();
+    final endDateFormatted =
+        '${endDate.day}/${endDate.month}/${endDate.year} à ${endDate.hour}h${endDate.minute.toString().padLeft(2, '0')}';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nouvelle opportunité'),
@@ -134,7 +148,7 @@ class _AddNewBetState extends State<AddNewBet> {
             TextFormField(
               controller: _potentialGainController,
               decoration: InputDecoration(
-                labelText: 'Gain potenciel',
+                labelText: 'Gain potentiel',
                 prefixText: currencySymbol == '\$' ? '' : ' ',
                 suffix: SizedBox(
                   width: 48.0,
@@ -147,6 +161,7 @@ class _AddNewBetState extends State<AddNewBet> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<Duration>(
+              value: _selectedDuration,
               onChanged: (value) {
                 setState(() {
                   _selectedDuration = value!;
@@ -155,33 +170,68 @@ class _AddNewBetState extends State<AddNewBet> {
               items: const [
                 DropdownMenuItem(
                   value: Duration(days: 1),
-                  child: Text('1 day'),
+                  child: Text('1 jour'),
                 ),
                 DropdownMenuItem(
                   value: Duration(days: 2),
-                  child: Text('2 day'),
+                  child: Text('2 jours'),
                 ),
                 DropdownMenuItem(
                   value: Duration(days: 3),
-                  child: Text('3 day'),
+                  child: Text('3 jours'),
                 ),
                 DropdownMenuItem(
                   value: Duration(days: 4),
-                  child: Text('4 day'),
+                  child: Text('4 jours'),
                 ),
                 DropdownMenuItem(
                   value: Duration(days: 5),
-                  child: Text('5 day'),
+                  child: Text('5 jours'),
                 ),
                 DropdownMenuItem(
                   value: Duration(days: 6),
-                  child: Text('6 day'),
+                  child: Text('6 jours'),
                 ),
                 DropdownMenuItem(
                   value: Duration(days: 7),
-                  child: Text('1 week'),
+                  child: Text('1 semaine'),
                 ),
               ],
+              decoration: const InputDecoration(
+                labelText: 'Durée',
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<Duration>(
+              value: _selectedAdditionalHours,
+              onChanged: (value) {
+                setState(() {
+                  _selectedAdditionalHours = value!;
+                });
+              },
+              items: [
+                const DropdownMenuItem(
+                  value: Duration.zero,
+                  child: Text('Aucune heure supplémentaire'),
+                ),
+                ...List.generate(24, (index) {
+                  return DropdownMenuItem(
+                    value: Duration(hours: index + 1),
+                    child:
+                        Text('${index + 1} heure${(index + 1) > 1 ? 's' : ''}'),
+                  );
+                }).toList(),
+              ],
+              decoration: const InputDecoration(
+                labelText: 'Heures supplémentaires',
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Date et heure de fin estimées : $endDateFormatted',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -222,7 +272,8 @@ class _AddNewBetState extends State<AddNewBet> {
                       participants: [],
                       winners: [],
                       creationDate: DateTime.now(),
-                      duration: _selectedDuration,
+                      duration: _selectedDuration + _selectedAdditionalHours,
+                      // Note : endDate n'est pas inclus ici
                     );
                     await _betRepository.addBet(newBet);
                     Navigator.pop(context);
@@ -234,17 +285,10 @@ class _AddNewBetState extends State<AddNewBet> {
                     print(e);
                   }
                 } else {
-                  print('Aucun utilisateur n\'est connecté');
+                  print('Aucun utilisateur connecté');
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Enregistrer'),
+              child: const Text('Créer'),
             ),
           ],
         ),
