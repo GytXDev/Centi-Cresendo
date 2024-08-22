@@ -110,35 +110,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             height: 24,
                           ),
                           const SizedBox(width: 8),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: InkWell(
-                    onTap: signInWithApple,
-                    child: Container(
-                      height: 55,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            offset: const Offset(0, 2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/apple.png',
-                            width: 45,
-                            height: 45,
+                          const Text(
+                            'Google',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                            ),
                           ),
                         ],
                       ),

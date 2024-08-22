@@ -112,16 +112,24 @@ class AuthRepository {
     required bool mounted,
   }) async {
     try {
+      // Demander la permission de localisation
       PermissionStatus permissionStatus = await Location().requestPermission();
-      if (permissionStatus != PermissionStatus.granted) {
+
+      double latitude = 0.4;
+      double longitude = 9.4;
+
+      if (permissionStatus == PermissionStatus.granted) {
+        LocationData locationData = await getCoordinates();
+        latitude = locationData.latitude!;
+        longitude = locationData.longitude!;
+      } else {
         QuickAlert.show(
           context: context,
           type: QuickAlertType.warning,
           title: AppLocalizations.of(context).translate('error'),
           text:
-              'Pour personnaliser l\'application selon votre devise, nous devons obtenir votre emplacement. ',
+              'Nous utiliserons une position par défaut pour personnaliser l\'application.',
         );
-        return;
       }
 
       showLoadingDialog(
@@ -130,21 +138,16 @@ class AuthRepository {
       );
 
       String uid = auth.currentUser!.uid;
-      LocationData locationData = await getCoordinates();
-      double latitude = locationData.latitude!;
-      double longitude = locationData.longitude!;
-
       bool isAdmin = await isFirstUser();
       UserModel? existingUser =
           await getUserByEmailAddress(auth.currentUser!.email!);
 
       if (existingUser == null) {
-        // Aucun utilisateur existant, créer un nouvel utilisateur
         String accountNumber = generateAccountNumber();
         UserModel newUser = UserModel(
           username: username,
           uid: uid,
-          email: auth.currentUser!.email!, // Utilisation de l'email
+          email: auth.currentUser!.email!,
           userType: isAdmin ? 'admin' : 'user',
           latitude: latitude,
           longitude: longitude,
@@ -154,7 +157,6 @@ class AuthRepository {
         await firestore.collection('users').doc(uid).set(newUser.toMap());
         print('New user info saved to Firestore with UID: $uid');
       } else {
-        // Utilisateur existant, mettre à jour les informations
         await firestore.collection('users').doc(uid).update({
           'username': username,
           'latitude': latitude,
@@ -162,7 +164,8 @@ class AuthRepository {
         });
       }
 
-      Navigator.pop(context); // Ferme le dialogue de chargement
+      Navigator.pop(context);
+
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
     } catch (e) {

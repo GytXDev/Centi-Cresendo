@@ -183,7 +183,7 @@ class _DepositState extends State<Deposit> {
         phoneNumber.startsWith('077') ||
         phoneNumber.startsWith('076') ||
         phoneNumber.startsWith('075')) {
-      url = 'https://centicresento.com/api/airtelmoney.php';
+      url = 'https://centicresento.com/api/airtelmoney-web.php';
     } else if (phoneNumber.startsWith('060') ||
         phoneNumber.startsWith('062') ||
         phoneNumber.startsWith('066') ||
@@ -436,7 +436,7 @@ class _DepositState extends State<Deposit> {
                 height: 20,
               ),
               const Text(
-                'Pour jouer, rechargez votre compte Centi Cresento avec le montant minimal de 100 CFA via Airtel Money ou Moov Money, achetez votre ticket et tentez votre chance !',
+                'Pour jouer, rechargez votre compte Centi Crescendo via Airtel Money ou Moov Money, achetez votre ticket et tentez votre chance !',
                 style: TextStyle(
                   fontFamily: 'Montserrat',
                   fontWeight: FontWeight.w800,
