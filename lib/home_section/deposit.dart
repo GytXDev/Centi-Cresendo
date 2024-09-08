@@ -183,7 +183,7 @@ class _DepositState extends State<Deposit> {
         phoneNumber.startsWith('077') ||
         phoneNumber.startsWith('076') ||
         phoneNumber.startsWith('075')) {
-      url = 'https://centicresento.com/api/airtelmoney-web.php';
+      url = 'https://centicresento.com/api/airtelmoney.php';
     } else if (phoneNumber.startsWith('060') ||
         phoneNumber.startsWith('062') ||
         phoneNumber.startsWith('066') ||

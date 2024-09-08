@@ -151,7 +151,7 @@ class _BetListWidgetState extends State<BetListWidget>
       if (isWinner) {
         // Si l'utilisateur est un gagnant, affichez "Félicitations gain du pari" avec une icône d'étoile
         if (remainingTime.inMinutes < 0 &&
-            remainingTime.inMinutes < 30 &&
+            remainingTime.inHours < 30 &&
             bet.winners.isNotEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -182,18 +182,14 @@ class _BetListWidgetState extends State<BetListWidget>
         return const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Continuez à tenter votre chance !',
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Le prochain ticket sera le bon !',
-                textAlign: TextAlign.center,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  '🎯 Continuez à tenter votre chance, le prochain ticket sera le bon !',
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ],
@@ -224,18 +220,19 @@ class _BetListWidgetState extends State<BetListWidget>
             ),
           );
         }
-
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: ElevatedButton(
-            onPressed: () {
-              _showParticipationDialog(context, bet);
-            },
-            child: Text(
-              'Augmenter vos chances ($ticketCount tickets)',
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
+          child: remainingTime.inHours >= 1
+              ? ElevatedButton(
+                  onPressed: () {
+                    _showParticipationDialog(context, bet);
+                  },
+                  child: Text(
+                    'Augmenter vos chances ($ticketCount ticket${ticketCount > 1 ? 's' : ''})',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                )
+              : SizedBox.shrink(), // Affiche rien si le temps est écoulé
         );
       }
     } else {
@@ -277,7 +274,8 @@ class _BetListWidgetState extends State<BetListWidget>
   }
 
   String formatPrice(double price, Locale locale) {
-    final format = NumberFormat("#,##0.00", locale.toString());
+    final format = NumberFormat(
+        "#,##0", locale.toString()); // Pas de chiffres après la virgule
     return format.format(price);
   }
 
@@ -602,6 +600,28 @@ class _BetListWidgetState extends State<BetListWidget>
     }
   }
 
+  Future<String?> _participationText(BuildContext context, BetModel bet) async {
+    final UserModel? currentUser = await getCurrentUser();
+
+    // Si l'utilisateur n'est pas connecté, on ne fait rien
+    if (currentUser == null) return null;
+
+    // Détermine combien de tickets l'utilisateur a achetés pour ce pari
+    int userTicketsCountForCurrentBet = bet.participants
+        .where((participant) => participant.startsWith('${currentUser.uid}_'))
+        .length;
+
+    // Génère un message si l'utilisateur a acheté des tickets
+    if (userTicketsCountForCurrentBet > 0) {
+      final ticketText = userTicketsCountForCurrentBet == 1
+          ? '1 ticket'
+          : '${userTicketsCountForCurrentBet} tickets';
+      final successMessage = 'Participation enregistrée : $ticketText';
+      return successMessage;
+    }
+    return null;
+  }
+
   //Dialogue d'achat
   void _showParticipationDialog(BuildContext context, BetModel bet) async {
     final UserModel? currentUser = await getCurrentUser();
@@ -609,7 +629,7 @@ class _BetListWidgetState extends State<BetListWidget>
     if (currentUser == null) return;
 
     // Déterminez combien de tickets l'utilisateur a déjà achetés pour ce pari
-    int userTicketCountForBet = bet.participants
+    int userTicketsCountForCurrentBet = bet.participants
         .where((participant) => participant.startsWith('${currentUser.uid}_'))
         .length;
 
@@ -617,13 +637,13 @@ class _BetListWidgetState extends State<BetListWidget>
     String dialogTitle;
     String dialogText;
 
-    if (userTicketCountForBet == 0) {
+    if (userTicketsCountForCurrentBet == 0) {
       dialogTitle = 'Acheter';
-      dialogText = 'Voulez-vous tentez votre chance ?';
+      dialogText = 'Voulez-vous tenter votre chance ?';
     } else {
       dialogTitle = 'Augmentez vos chances';
       dialogText =
-          'Vous avez déjà acheté $userTicketCountForBet ticket(s) pour ce pari. Voulez-vous en acheter un autre pour augmenter vos chances ?';
+          'Vous avez déjà acheté $userTicketsCountForCurrentBet ticket${userTicketsCountForCurrentBet > 1 ? 's' : ''} pour ce pari. Voulez-vous en acheter un autre pour augmenter vos chances ?';
     }
 
     QuickAlert.show(
@@ -635,7 +655,9 @@ class _BetListWidgetState extends State<BetListWidget>
       title: dialogTitle,
       text: dialogText,
       textAlignment: TextAlign.center,
-      confirmBtnText: 'Oui, je veux',
+      confirmBtnText: "Oui, s'il vous plaît",
+      cancelBtnTextStyle: const TextStyle(fontSize: 12.0, color: Colors.red),
+      confirmBtnTextStyle: const TextStyle(fontSize: 12.0, color: Colors.white),
       cancelBtnText: 'Non, merci',
       confirmBtnColor: Coolors.purpleDark,
       onConfirmBtnTap: () async {
@@ -712,8 +734,7 @@ class _BetListWidgetState extends State<BetListWidget>
     QuickAlert.show(
       context: context,
       type: QuickAlertType.success,
-      text:
-          'Félicitations ! Votre ticket de tombola a été acheté avec succès !',
+      text: 'Félicitations ! Votre ticket a été acheté avec succès !',
     );
   }
 
@@ -909,32 +930,39 @@ class _BetListWidgetState extends State<BetListWidget>
                                     fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.attach_money,
-                                    color: Colors.amber,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    widget.currency == Currency.USD
-                                        ? 'Coût du ticket : $currencySymbol $formattedparticipationSum'
-                                        : 'Coût du ticket : $formattedparticipationSum $currencySymbol',
-                                  ),
-                                ],
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.attach_money,
+                                      color: Colors.amber,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      widget.currency == Currency.USD
+                                          ? 'Coût du ticket : $currencySymbol $formattedparticipationSum'
+                                          : 'Coût du ticket : $formattedparticipationSum $currencySymbol',
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(Icons.monetization_on,
-                                      color: Coolors.purpleDark),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    widget.currency == Currency.USD
-                                        ? 'Ticket gagnant : $currencySymbol $formattedpotentialGain'
-                                        : 'Ticket gagnant : $formattedpotentialGain $currencySymbol',
-                                  ),
-                                ],
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.monetization_on,
+                                        color: Coolors.purpleDark),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      overflow: TextOverflow.ellipsis,
+                                      widget.currency == Currency.USD
+                                          ? 'Ticket gagnant : $currencySymbol $formattedpotentialGain'
+                                          : 'Ticket gagnant : $formattedpotentialGain $currencySymbol',
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 6),
                               if (currentUser != null &&
@@ -960,65 +988,90 @@ class _BetListWidgetState extends State<BetListWidget>
                                         'Nombre de gagnants : ${bet.winners.length}'),
                                   ],
                                 ),
-                              const SizedBox(height: 6),
-                              AnimatedBuilder(
-                                animation: _controller,
-                                builder: (context, child) {
-                                  String timeLeft;
-                                  IconData iconData;
-                                  Color iconColor;
-                                  Color textColor;
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: AnimatedBuilder(
+                                  animation: _controller,
+                                  builder: (context, child) {
+                                    String timeLeft;
+                                    IconData iconData;
+                                    Color iconColor;
+                                    Color textColor;
 
-                                  if (remainingTime.inHours >= 1) {
-                                    timeLeft =
-                                        'Temps restants : ${formatDuration(remainingTime)}';
-                                    iconData = Icons.access_time;
-                                    iconColor = Coolors
-                                        .greyDark; // Couleur de l'icône pour ce cas
-                                  } else if (remainingTime.inMinutes >= 30 &&
-                                      remainingTime.inHours < 1) {
-                                    timeLeft =
-                                        'Préparation des résultats ${formatDuration(remainingTime)}';
-                                    iconData = Icons.pending;
-                                    iconColor = Coolors.greyDark;
-                                  } else if (remainingTime.inMinutes > 0 &&
-                                      remainingTime.inMinutes < 30) {
-                                    timeLeft =
-                                        'Résultats disponibles : ${formatDuration(remainingTime)}';
-                                    iconData = Icons.check_circle;
-                                    iconColor = Colors
-                                        .green; // Couleur de l'icône pour ce cas
-                                  } else {
-                                    timeLeft = 'Vente clôturé';
-                                    iconData = Icons.timer_outlined;
-                                    iconColor = Colors
-                                        .red; // Couleur de l'icône pour ce cas
-                                  }
+                                    if (remainingTime.inHours >= 1) {
+                                      timeLeft =
+                                          'Temps restants : ${formatDuration(remainingTime)}';
+                                      iconData = Icons.access_time;
+                                      iconColor = Coolors
+                                          .greyDark; // Couleur de l'icône pour ce cas
+                                    } else if (remainingTime.inMinutes >= 30 &&
+                                        remainingTime.inHours < 1) {
+                                      timeLeft =
+                                          'Préparation des résultats ${formatDuration(remainingTime)}';
+                                      iconData = Icons.pending;
+                                      iconColor = Coolors.greyDark;
+                                    } else if (remainingTime.inMinutes > 0 &&
+                                        remainingTime.inMinutes < 30) {
+                                      timeLeft =
+                                          'Résultats disponibles dans ${formatDuration(remainingTime)}';
+                                      iconData = Icons.check_circle;
+                                      iconColor = Colors
+                                          .green; // Couleur de l'icône pour ce cas
+                                    } else {
+                                      timeLeft = 'Vente clôturé';
+                                      iconData = Icons.timer_outlined;
+                                      iconColor = Colors
+                                          .red; // Couleur de l'icône pour ce cas
+                                    }
 
-                                  textColor = remainingTime.inSeconds <= 0
-                                      ? Colors.red
-                                      : Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge!
-                                          .color!;
+                                    textColor = remainingTime.inSeconds <= 0
+                                        ? Colors.red
+                                        : Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .color!;
 
-                                  return Row(
-                                    children: [
-                                      Icon(
-                                        iconData,
-                                        color: iconColor,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        timeLeft,
-                                        style: TextStyle(color: textColor),
-                                      ),
-                                    ],
-                                  );
-                                },
+                                    return Row(
+                                      children: [
+                                        Icon(
+                                          iconData,
+                                          color: iconColor,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          timeLeft,
+                                          style: TextStyle(color: textColor),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: FutureBuilder<String?>(
+                                future: _participationText(context, bet),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData &&
+                                      snapshot.data != null) {
+                                    return Transform.translate(
+                                      offset: Offset(20,
+                                          0), // Déplace le texte de 10 pixels vers la gauche
+                                      child: Text(snapshot.data!),
+                                    );
+                                  } else {
+                                    return SizedBox
+                                        .shrink(); // Affiche rien si aucun message
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
